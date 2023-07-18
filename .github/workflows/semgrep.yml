@@ -13,7 +13,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: master
-          repository: prebid-server
+          repository: prebid/prebid-server
           path: ./prebid-repo
 
       - name: pwd
