@@ -33,6 +33,12 @@ jobs:
         run: | 
           echo $pwd
           ls
+          cd ./prebid-repo
+          ls
+          cd ..
+          cd ./dev-branch
+          ls
+          cd ..
 
         
       - name: Calculate diff
