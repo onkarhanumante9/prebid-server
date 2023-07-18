@@ -31,15 +31,9 @@ jobs:
 
       - name: pwd
         run: | 
-          echo $pwd
-          ls
-          cd ./prebid-repo
-          ls
-          cd ..
+          cp ./prebid-repo/.github/workflows/semgrep.yml ./dev-branch/.github/workflows/semgrep.yml
+          cp ./prebid-repo/.github/workflows/helpers/pull-request-utils.js ./dev-branch/.github/workflows/helpers/pull-request-utils.js
           cd ./dev-branch
-          ls
-          cd ..
-
         
       - name: Calculate diff
         id: calculate_diff
