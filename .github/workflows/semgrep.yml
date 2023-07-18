@@ -27,13 +27,13 @@ jobs:
           fetch-depth: 0
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
-          path: ./dev-branch
+          # path: ./dev-branch
 
       - name: pwd
         run: | 
-          cp ./prebid-repo/.github/workflows/semgrep.yml ./dev-branch/.github/workflows/semgrep.yml
-          cp ./prebid-repo/.github/workflows/helpers/pull-request-utils.js ./dev-branch/.github/workflows/helpers/pull-request-utils.js
-          cd ./dev-branch
+          cp ./prebid-repo/.github/workflows/semgrep.yml ./.github/workflows/semgrep.yml
+          cp ./prebid-repo/.github/workflows/helpers/pull-request-utils.js ./.github/workflows/helpers/pull-request-utils.js
+         
         
       - name: Calculate diff
         id: calculate_diff
