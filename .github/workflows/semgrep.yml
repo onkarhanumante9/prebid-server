@@ -39,6 +39,9 @@ jobs:
           
           cp ./prebid-repo/.github/workflows/helpers/pull-request-utils.js ./dev-branch/.github/workflows/helpers/pull-request-utils.js
           cp -a ./dev-branch/. /home/runner/work/prebid-server/prebid-server
+          echo "--------4-----------------"
+          ls
+
         
       - name: Calculate diff
         id: calculate_diff
