@@ -31,9 +31,11 @@ jobs:
 
       - name: pwd
         run: | 
+          echo "--------1-----------------"
+          ls
           cp ./prebid-repo/.github/workflows/semgrep.yml ./.github/workflows/semgrep.yml
           ls
-          echo "-------------------------"
+          echo "--------3-----------------"
           
           cp ./prebid-repo/.github/workflows/helpers/pull-request-utils.js ./.github/workflows/helpers/pull-request-utils.js
          
