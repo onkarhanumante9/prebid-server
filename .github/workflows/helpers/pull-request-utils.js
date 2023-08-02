@@ -198,6 +198,23 @@ class diffHelper {
     }
     return nonScannedCommitsDiff
   }
+
+  async getDirectories(filterFunction = () => true) {
+    const { data } = await this.github.rest.pulls.listFiles({
+      owner: this.owner,
+      repo: this.repo,
+      pull_number: this.pullRequestNumber,
+      per_page: resultSize,
+    })
+    const directories = new Set()
+    for (const { filename } of data) {
+      if (filterFunction(filename)) {
+        const lastSeparatorIndex = filename.lastIndexOf("/");
+        directories.add(filename.substring(0, lastSeparatorIndex))
+      }
+    }
+    return Array.from(directories)
+  }
 }
 
 class semgrepHelper {
