@@ -199,24 +199,24 @@ class diffHelper {
     return nonScannedCommitsDiff
   }
 
-  async getDirectories(filterFunction = () => true) {
+  /*
+    Retrieves a list of directories from GitHub pull request files
+    @param {Function} directoryExtractor - The function used to extract the directory name from the filename
+    @returns {Array} An array of unique directory names
+  */
+  async getDirectories(directoryExtractor = () => "") {
     const { data } = await this.github.rest.pulls.listFiles({
       owner: this.owner,
       repo: this.repo,
       pull_number: this.pullRequestNumber,
       per_page: resultSize,
     })
+
     const directories = []
     for (const { filename } of data) {
-      if (filterFunction(filename)) {
-        const directory = filename.split("/")[1]
-        // filename.split("/")[1]
-        // const lastSeparatorIndex = filename.lastIndexOf("/")
-        // const directory = filename.substring(0, lastSeparatorIndex)
-        if (!directories.includes(directory)) {
-          // directories.push(filename.substring(0, lastSeparatorIndex))
-          directories.push(directory)
-        }
+      const directory = directoryExtractor(filename)
+      if (directory != "" && !directories.includes(directory)) {
+        directories.push(directory)
       }
     }
     return directories
@@ -354,7 +354,38 @@ class semgrepHelper {
   }
 }
 
+class coverageHelper {
+  constructor(input) {
+    this.owner = input.context.repo.owner
+    this.repo = input.context.repo.repo
+    this.github = input.github
+    this.pullRequestNumber = input.context.payload.pull_request.number
+  }
+
+  /*
+    Add a coverage summary comment to a GitHub pull request
+    @param {string} filepath - path to the file containing the coverage summary data
+  */
+  async AddCoverageSummary(filepath) {
+    const fs = require("fs")
+    fs.readFile(filepath, "utf8", async (err, data) => {
+      if (err) {
+        console.error(err)
+        return
+      } else {
+        await this.github.rest.issues.createComment({
+          owner: this.owner,
+          repo: this.repo,
+          issue_number: this.pullRequestNumber,
+          body: data,
+        })
+      }
+    })
+  }
+}
+
 module.exports = {
   diffHelper: (input) => new diffHelper(input),
   semgrepHelper: (input) => new semgrepHelper(input),
+  coverageHelper: (input) => new coverageHelper(input),
 }

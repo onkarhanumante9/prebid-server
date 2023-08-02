@@ -1,6 +1,5 @@
 package appnexus
 
-//
 import (
 	"encoding/json"
 	"errors"
