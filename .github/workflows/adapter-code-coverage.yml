@@ -21,18 +21,16 @@ jobs:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
 
-      - name: Get directories
+      - name: Get changed file directories
         id: get_directories
         uses: actions/github-script@v6
         with:
           result-encoding: string
           script: |
-            const utils = require('./.github/workflows/helpers/pull-request-utils.js')
+            const utils = require('./.github/workflows/helpers/pull-request-utils.js')            
+            // consider files that are part of the adapter code
             function filter(filepath) {
-              return filename.startsWith("adapters/") && 
-                filename.endsWith(".go") && 
-                !filename.endsWith("_test.go") && 
-                filename.split("/").length > 2
+              return filename.startsWith("adapters/") && filename.split("/").length > 2
             }
             const helper = utils.diffHelper({github, context})
             const files = await helper.getDirectories(filter)
