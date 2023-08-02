@@ -34,14 +34,25 @@ jobs:
             }
             const helper = utils.diffHelper({github, context})
             const files = await helper.getDirectories(filter)
+            console.log(JSON.stringify(files))
             return JSON.stringify(files);
         
       - name: Run coverage
         run: |
-          directories=($(echo ${{steps.get_directories.outputs}} | jq -r '.[]'))
+          directories=$(echo '${{ steps.get_directories.outputs.result }}' | jq -r '.[]')
+          go mod download
+          
+          cd ./adapters
+          echo "after cd into adapters directory" + $PWD
+
           # Iterate through the array
           for directory in "${directories[@]}"; do
-            echo "$directory"
+            cd $directory
+            echo "generate coverage for ${directory} adapter"
+            go test -coverprofile="${directory}.out"
+            go tool cover -html="${directory}.out" -o "${directory}.html"
+            ls
+            cd ..            
           done
           
 

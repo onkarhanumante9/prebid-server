@@ -206,14 +206,20 @@ class diffHelper {
       pull_number: this.pullRequestNumber,
       per_page: resultSize,
     })
-    const directories = new Set()
+    const directories = []
     for (const { filename } of data) {
       if (filterFunction(filename)) {
-        const lastSeparatorIndex = filename.lastIndexOf("/");
-        directories.add(filename.substring(0, lastSeparatorIndex))
+        const directory = filename.split("/")[1]
+        // filename.split("/")[1]
+        // const lastSeparatorIndex = filename.lastIndexOf("/")
+        // const directory = filename.substring(0, lastSeparatorIndex)
+        if (!directories.includes(directory)) {
+          // directories.push(filename.substring(0, lastSeparatorIndex))
+          directories.push(directory)
+        }
       }
     }
-    return Array.from(directories)
+    return directories
   }
 }
 
