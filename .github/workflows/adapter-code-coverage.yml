@@ -1,4 +1,4 @@
-name: Adapter semgrep checks
+name: Adapter code coverage
 on:
   pull_request_target:
     paths: ["adapters/*/*.go"]
@@ -14,7 +14,7 @@ jobs:
         with:
           go-version: 1.20.5
 
-      - name: 
+      - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -28,12 +28,14 @@ jobs:
           result-encoding: string
           script: |
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')
-            // consider only non-test Go files that are part of the adapter code
-            // function fileNameFilter(filename) {
-            //   return filename.startsWith("adapters/") && filename.split("/").length > 2 && filename.endsWith(".go") && !filename.endsWith("_test.go")
-            // }
+            function filter(filepath) {
+              return filename.startsWith("adapters/") && 
+                filename.endsWith(".go") && 
+                !filename.endsWith("_test.go") && 
+                filename.split("/").length > 2
+            }
             const helper = utils.diffHelper({github, context})
-            const files = await helper.getUpdatedFiles()
+            const files = await helper.getDirectories(filter)
             console.log(files)
 
 
