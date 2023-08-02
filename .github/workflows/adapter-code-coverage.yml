@@ -21,7 +21,7 @@ jobs:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
 
-      - name: Get changed file directories
+      - name: Get directories
         id: get_directories
         uses: actions/github-script@v6
         with:
@@ -34,7 +34,18 @@ jobs:
             }
             const helper = utils.diffHelper({github, context})
             const files = await helper.getDirectories(filter)
-            console.log(files)
+            return JSON.stringify(files);
+        
+      - name: Run coverage
+        if: contains(steps.get_directories.outputs, '')
+        run: |
+          directoriesStr=${{steps.get_directories.outputs}}
+          directories=($(echo "$directoriesStr" | jq -r '.[]'))
+          # Iterate through the array
+          for currentString in "${arrayOfStrings[@]}"; do
+            echo "$currentString"
+          done
+          
 
 
     # - name: Validate
