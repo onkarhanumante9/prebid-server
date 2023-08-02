@@ -14,7 +14,7 @@ jobs:
         with:
           go-version: 1.20.5
 
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -30,7 +30,7 @@ jobs:
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')            
             // consider files that are part of the adapter code
             function filter(filepath) {
-              return filename.startsWith("adapters/") && filename.split("/").length > 2
+              return filepath.startsWith("adapters/") && filepath.split("/").length > 2
             }
             const helper = utils.diffHelper({github, context})
             const files = await helper.getDirectories(filter)
