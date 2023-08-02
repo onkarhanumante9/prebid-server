@@ -37,7 +37,7 @@ jobs:
             console.log(files)
 
 
-            # - name: Validate
+    # - name: Validate
     #   run: |
     #     ./validate.sh --nofmt --cov --race 10
     #   env:
