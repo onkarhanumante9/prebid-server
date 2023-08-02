@@ -41,24 +41,14 @@ jobs:
         run: |
           directories=$(echo '${{ steps.get_directories.outputs.result }}' | jq -r '.[]')
           go mod download
-          
-          cd ./adapters
-          echo "after cd into adapters directory" + $PWD
-
-          # Iterate through the array
-          for directory in "${directories[@]}"; do
+          cd ./adapters  
+          for directory in $directories; do
+            echo "Generating coverage for $directory adapter"
             cd $directory
-            echo "generate coverage for ${directory} adapter"
             go test -coverprofile="${directory}.out"
             go tool cover -html="${directory}.out" -o "${directory}.html"
             ls
-            cd ..            
+            cd ..
           done
-          
-
-
-    # - name: Validate
-    #   run: |
-    #     ./validate.sh --nofmt --cov --race 10
-    #   env:
-    #     GO111MODULE: "on"
+        env:
+          GO111MODULE: "on"
