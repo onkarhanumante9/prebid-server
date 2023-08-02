@@ -37,7 +37,6 @@ jobs:
             return JSON.stringify(files);
         
       - name: Run coverage
-        if: contains(steps.get_directories.outputs, '')
         run: |
           directoriesStr=${{steps.get_directories.outputs}}
           directories=($(echo "$directoriesStr" | jq -r '.[]'))
