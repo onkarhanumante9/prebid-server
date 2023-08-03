@@ -1,6 +1,6 @@
 name: Adapter code coverage
 on:
-  pull_request:
+  pull_request_target:
     paths: ["adapters/*/*.go"]
 permissions: 
     pull-requests: write
@@ -28,27 +28,64 @@ jobs:
           result-encoding: string
           script: |
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')            
-            // consider files that are part of the adapter code
-            function filter(filepath) {
-              return filepath.startsWith("adapters/") && filepath.split("/").length > 2
+            function directoryExtractor(filepath) {
+              // only consider files that are part of the adapter code
+              if (filepath.startsWith("adapters/") && filepath.split("/").length > 2) {
+                return filepath.split("/")[1]
+              }
+              return ""
             }
             const helper = utils.diffHelper({github, context})
-            const files = await helper.getDirectories(filter)
-            return JSON.stringify(files);
-        
-      - name: Run coverage
+            const files = await helper.getDirectories(directoryExtractor)
+            return files.length == 0 ? "" : JSON.stringify(files);
+
+      - name: Run coverage tests
+        id: run_coverage
+        if: ${{ steps.get_directories.outputs.result }} != ""
         run: |
-          directoriesStr=${{steps.get_directories.outputs}}
-          directories=($(echo "$directoriesStr" | jq -r '.[]'))
-          # Iterate through the array
-          for currentString in "${arrayOfStrings[@]}"; do
-            echo "$currentString"
+          directories=$(echo '${{ steps.get_directories.outputs.result }}' | jq -r '.[]')
+          go mod download
+
+          # create a temporary directory to store the coverage output
+          temp_dir=$(mktemp -d)
+          touch ${temp_dir}/coverage_output.txt
+          coverage_output_path="${temp_dir}/coverage_output.txt"
+
+          echo "## Code coverage summary" >> "${coverage_output_path}"
+          echo "Refer [Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) section for heatmap coverage report" >> "${coverage_output_path}"
+
+          # generate coverage for adapter
+          cd ./adapters
+          for directory in $directories; do 
+            cd $directory
+            echo "#### Coverage percentages for ${directory} adapter:" >> "${coverage_output_path}"
+            echo "\`\`\`" >> "${coverage_output_path}"
+
+            coverage_profile_path="${PWD}/${directory}.out"
+            go test -coverprofile="${coverage_profile_path}"
+            go tool cover -func=${coverage_profile_path} >> "${coverage_output_path}"
+            go tool cover -html="${coverage_profile_path}" -o "${temp_dir}/${directory}.html"
+            
+            echo "\`\`\`" >> "${coverage_output_path}"
+            cd ..
           done
-          
+          echo "coverage_dir=${temp_dir}" >> $GITHUB_OUTPUT
+          echo "coverage_output_path=${coverage_output_path}" >> $GITHUB_OUTPUT
 
+      - name: Upload coverage files as artifact
+        if: ${{ steps.get_directories.outputs.result }} != ""
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage.html
+          retention-days: 2
+          path: ${{ steps.run_coverage.outputs.coverage_dir }}/*.html
 
-    # - name: Validate
-    #   run: |
-    #     ./validate.sh --nofmt --cov --race 10
-    #   env:
-    #     GO111MODULE: "on"
+      - name: Add coverage summary to pull request
+        if: ${{ steps.run_coverage.outputs.coverage_output_path }} != ""
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const utils = require('./.github/workflows/helpers/pull-request-utils.js')
+            const helper = utils.coverageHelper({github, context})
+            const filePath = '${{ steps.run_coverage.outputs.coverage_output_path }}'
+            await helper.AddCoverageSummary(filePath)
