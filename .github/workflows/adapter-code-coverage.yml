@@ -7,7 +7,6 @@ permissions:
 jobs:
   run-coverage:
     runs-on: ubuntu-latest
-
     steps:
       - name: Install Go
         uses: actions/setup-go@v4
@@ -29,7 +28,7 @@ jobs:
           script: |
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')            
             function directoryExtractor(filepath) {
-              // only consider files that are part of the adapter code
+              // extract directory name from filepath of the form adapters/<adapter-name>/*.go
               if (filepath.startsWith("adapters/") && filepath.split("/").length > 2) {
                 return filepath.split("/")[1]
               }
@@ -52,6 +51,7 @@ jobs:
           coverage_output_path="${temp_dir}/coverage_output.txt"
 
           echo "## Code coverage summary" >> "${coverage_output_path}"
+          echo "Summary for head commit: ${{ github.event.pull_request.head.sha }}" >> "${coverage_output_path}
           echo "Refer [Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) section for heatmap coverage report" >> "${coverage_output_path}"
 
           # generate coverage for adapter
