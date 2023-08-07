@@ -404,6 +404,10 @@ class coverageHelper {
         branch: "coverage-preview",
         message: `Add coverage preview file ${file}`,
         content: Buffer.from(fileContent).toString("base64"),
+        [committer.name]: "github-actions[bot]",
+        [committer.email]: "github-actions[bot]@users.noreply.github.com",
+        [author.name]: "github-actions[bot]",
+        [author.email]: "github-actions[bot]@users.noreply.github.com",
       });
     }
   }
