@@ -22,7 +22,7 @@ import (
 // test
 // test
 // test
-// test
+
 // test
 // test
 type SmartyAdsAdapter struct {

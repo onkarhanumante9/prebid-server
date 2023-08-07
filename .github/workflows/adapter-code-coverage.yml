@@ -14,7 +14,11 @@ jobs:
         with:
           go-version: 1.20.5
 
-      - name: Checkout
+      - name: Run coverage tests
+        run: |
+          ls
+          
+      - name: Checkout pull request branch
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -71,21 +75,45 @@ jobs:
           done
           echo "coverage_dir=${temp_dir}" >> $GITHUB_OUTPUT
           echo "coverage_output_path=${coverage_output_path}" >> $GITHUB_OUTPUT
+        
 
-      - name: Upload coverage files as artifact
-        if: ${{ steps.get_directories.outputs.result }} != ""
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage.html
-          retention-days: 2
-          path: ${{ steps.run_coverage.outputs.coverage_dir }}/*.html
+          cd ../..
+          echo ${PWD}
+          ls
+          rm -rf ./prebid-server
 
-      - name: Add coverage summary to pull request
-        if: ${{ steps.run_coverage.outputs.coverage_output_path }} != ""
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const utils = require('./.github/workflows/helpers/pull-request-utils.js')
-            const helper = utils.coverageHelper({github, context})
-            const filePath = '${{ steps.run_coverage.outputs.coverage_output_path }}'
-            await helper.AddCoverageSummary(filePath)
+      # - name: Upload coverage files as artifact
+      #   if: ${{ steps.get_directories.outputs.result }} != ""
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: coverage.html
+      #     retention-days: 2
+      #     path: ${{ steps.run_coverage.outputs.coverage_dir }}/*.html
+
+      # - name: Add coverage summary to pull request
+      #   if: ${{ steps.run_coverage.outputs.coverage_output_path }} != ""
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: |
+      #       const utils = require('./.github/workflows/helpers/pull-request-utils.js')
+      #       const helper = utils.coverageHelper({github, context})
+      #       const filePath = '${{ steps.run_coverage.outputs.coverage_output_path }}'
+      #       await helper.AddCoverageSummary(filePath)
+
+      - name: Run coverage tests
+        run: |
+            ls
+
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      #   with:
+      #     fetch-depth: 0
+      #     repository: onkarvhanumante/prebid-server
+      
+      # - name: Checkout coverage-preview branch
+      #   uses: actions/checkout@v3
+      #   with:
+      #     fetch-depth: 0
+      #     ref: coverage-preview
+      #     repository: onkarvhanumante/prebid-server
+      #     path: ./coverage-preview
