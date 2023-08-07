@@ -383,34 +383,6 @@ class coverageHelper {
     })
   }
 
-  async addCoveragePreviewFile(filepath, actionRunId) {
-    const fs = require("fs");
-    const path = require("path");
-
-    // read file with *.html extension from filepath
-    const files = await fs.promises.readdir(filepath);
-
-    // iterate on files check if file is html. also maintain file name
-    const htmlFiles = files.filter((file) => path.extname(file) === ".html");
-    for (const file of htmlFiles) {
-      const fileContent = await fs.promises.readFile(
-        path.join(filepath, file),
-        "utf-8"
-      );
-      await this.github.rest.repos.createOrUpdateFileContents({
-        owner: this.owner,
-        repo: this.repo,
-        path: actionRunId/file,
-        branch: "coverage-preview",
-        message: `Add coverage preview file ${file}`,
-        content: Buffer.from(fileContent).toString("base64"),
-        [committer.name]: "github-actions[bot]",
-        [committer.email]: "github-actions[bot]@users.noreply.github.com",
-        [author.name]: "github-actions[bot]",
-        [author.email]: "github-actions[bot]@users.noreply.github.com",
-      });
-    }
-  }
 }
 
 module.exports = {

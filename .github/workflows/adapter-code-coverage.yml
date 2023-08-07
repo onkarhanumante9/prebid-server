@@ -1,6 +1,6 @@
 name: Adapter code coverage
 on:
-  pull_request_target:
+  pull_request:
     paths: ["adapters/*/*.go"]
 permissions: 
     pull-requests: write
@@ -88,5 +88,4 @@ jobs:
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')
             const helper = utils.coverageHelper({github, context})
             const filePath = '${{ steps.run_coverage.outputs.coverage_output_path }}'
-            # await helper.AddCoverageSummary(filePath)
-            await helper.addCoveragePreviewFile('${{ steps.run_coverage.outputs.coverage_dir }}', '${{ github.run_id }}')
+            await helper.AddCoverageSummary(filePath)
