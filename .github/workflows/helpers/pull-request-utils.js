@@ -356,6 +356,7 @@ class semgrepHelper {
 
 class coverageHelper {
   constructor(input) {
+    console.log(input)
     this.owner = input.context.repo.owner
     this.repo = input.context.repo.repo
     this.github = input.github
@@ -366,30 +367,36 @@ class coverageHelper {
     Add a coverage summary comment to a GitHub pull request
     @param {string} filepath - path to the file containing the coverage summary data
   */
-  async AddCoverageSummary(coverageDirectory, adapterDirectoriesStr, actionRunId) {
+  async AddCoverageSummary(coverageDirectory, adapterDirectories, actionRunId) {
+    console.log("h1")
     const fs = require("fs")
-    const adapterDirectories = JSON.parse(adapterDirectoriesStr)
+    console.log("h2")
+    
     let previewBaseURL =
       "https://htmlpreview.github.io/?https://github.com/onkarvhanumante/prebid-server/coverage-preview/" +
       actionRunId
+    console.log("h4")
+    
 
     let body = "## Code coverage summary\n"
     for (const adapter of adapterDirectories) {
+      console.log("h>>>>" + adapter)
       let url = previewBaseURL + "/" + adapter + ".html"
       body += `#### ${adapter} adapter:\n`
       body += "Refer [here](" + url + ") for the heatmap coverage report up to commit \n"
 
-      // const txtFile = path.join(coverageDirectory, adapter, ".txt")
-      // fs.readFile(txtFile, "utf8", async (err, data) => {
-      //   if (err) {
-      //     console.error(err)
-      //     return
-      //   } else {
-      //     body += "```\n"
-      //     body += data
-      //     body += "```\n"
-      //   }
-      // })
+      const txtFile = path.join(coverageDirectory, adapter, ".txt")
+      console.log("Reading file: " + txtFile)
+      fs.readFile(txtFile, "utf8", async (err, data) => {
+        if (err) {
+          console.error(err)
+          return
+        } else {
+          body += "```\n"
+          body += data
+          body += "```\n"
+        }
+      })
     }
 
     await this.github.rest.issues.createComment({

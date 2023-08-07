@@ -2,9 +2,9 @@ name: Adapter code coverage
 on:
   pull_request:
     paths: ["adapters/*/*.go"]
-permissions: 
-    pull-requests: write
-    contents: write
+permissions:
+  pull-requests: write
+  contents: write
 jobs:
   run-coverage:
     runs-on: ubuntu-latest
@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.5
-          
+
       - name: Checkout pull request branch
         uses: actions/checkout@v3
         with:
@@ -49,7 +49,7 @@ jobs:
           # create a temporary directory to store the coverage output
           temp_dir=$(mktemp -d)
           touch ${temp_dir}/coverage_output.txt
-          
+
           # generate coverage for adapter
           cd ./adapters
           for directory in $directories; do 
@@ -76,20 +76,29 @@ jobs:
       - name: Commit coverage files to coverage-preview branch
         if: ${{ steps.run_coverage.outputs.coverage_dir }} != ""
         run: |
-          mkdir ./${{ github.run_id }}
-          cp -r ${{ steps.run_coverage.outputs.coverage_dir }}/*.html ./${{ github.run_id }}
-          ls ./${{ github.run_id }}
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./${{ github.run_id }}
-          git commit -m "Add coverage files for commit ${{ github.run_id }}"
-          git push origin coverage-preview
-          
+            # append timestamp
+            directory=.github/preview/${{ github.run_id }}_$(date +%s)
+            mkdir -p $directory
+            cp -r ${{ steps.run_coverage.outputs.coverage_dir }}/*.html ./$directory
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git add $directory/*
+            git commit -m 'Add coverage files for commit ${directory}'
+            git push origin coverage-preview
+
       - name: Add coverage summary to pull request
         if: ${{ steps.run_coverage.outputs.coverage_dir }} != ""
         uses: actions/github-script@v6
         with:
           script: |
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')
+            console.log("p1")
             const helper = utils.coverageHelper({github, context})
-            await helper.AddCoverageSummary('${{ steps.run_coverage.outputs.coverage_dir }}', '${{ steps.get_directories.outputs.result }}', '${{ github.run_id }})')
+            console.log("p2")
+            const coverageDir = '${{ steps.run_coverage.outputs.coverage_dir }}'
+            console.log("p3")
+            const adapterDirectories = JSON.parse('${{ steps.get_directories.outputs.result }}')
+            console.log("p4")
+            const actionRunId = '${{ github.run_id }}'
+            console.log("p5")
+            await helper.AddCoverageSummary(coverageDir, adapterDirectories, actionRunId)
