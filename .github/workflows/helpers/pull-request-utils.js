@@ -366,21 +366,53 @@ class coverageHelper {
     Add a coverage summary comment to a GitHub pull request
     @param {string} filepath - path to the file containing the coverage summary data
   */
-  async AddCoverageSummary(filepath) {
+  async AddCoverageSummary(coverageDirectory, adapterDirectoriesStr, actionRunId) {
     const fs = require("fs")
-    fs.readFile(filepath, "utf8", async (err, data) => {
-      if (err) {
-        console.error(err)
-        return
-      } else {
-        await this.github.rest.issues.createComment({
-          owner: this.owner,
-          repo: this.repo,
-          issue_number: this.pullRequestNumber,
-          body: data,
-        })
-      }
+    const adapterDirectories = JSON.parse(adapterDirectoriesStr)
+    let previewBaseURL =
+      "https://htmlpreview.github.io/?https://github.com/onkarvhanumante/prebid-server/coverage-preview/" +
+      actionRunId
+
+    let body = "## Code coverage summary\n"
+    for (const adapter of adapterDirectories) {
+      let url = previewBaseURL + "/" + adapter + ".html"
+      body += `#### ${adapter} adapter:\n`
+      body += "Refer [here](" + url + ") for the heatmap coverage report up to commit \n"
+
+      // const txtFile = path.join(coverageDirectory, adapter, ".txt")
+      // fs.readFile(txtFile, "utf8", async (err, data) => {
+      //   if (err) {
+      //     console.error(err)
+      //     return
+      //   } else {
+      //     body += "```\n"
+      //     body += data
+      //     body += "```\n"
+      //   }
+      // })
+    }
+
+    await this.github.rest.issues.createComment({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: this.pullRequestNumber,
+      body: body,
     })
+
+    // const fs = require("fs")
+    // fs.readFile(filepath, "utf8", async (err, data) => {
+    //   if (err) {
+    //     console.error(err)
+    //     return
+    //   } else {
+    //     await this.github.rest.issues.createComment({
+    //       owner: this.owner,
+    //       repo: this.repo,
+    //       issue_number: this.pullRequestNumber,
+    //       body: data,
+    //     })
+    //   }
+    // })
   }
 
   async addCoveragePreviewFile(filepath, actionRunId) {
