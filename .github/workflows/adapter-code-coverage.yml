@@ -3,7 +3,8 @@ on:
   pull_request_target:
     paths: ["adapters/*/*.go"]
 permissions: 
-    pull-requests: write
+    # pull-requests: write
+    contents: write
 jobs:
   run-coverage:
     runs-on: ubuntu-latest
@@ -88,3 +89,4 @@ jobs:
             const helper = utils.coverageHelper({github, context})
             const filePath = '${{ steps.run_coverage.outputs.coverage_output_path }}'
             await helper.AddCoverageSummary(filePath)
+            await helper.AddCoverageComment('${{ steps.run_coverage.outputs.coverage_dir }}', '${{ github.run_id }}')
