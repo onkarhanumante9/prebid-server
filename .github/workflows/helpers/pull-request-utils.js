@@ -388,6 +388,7 @@ class coverageHelper {
         body += "```\n"
       } catch (err) {
         console.error(err)
+        return
       }
     }
 
