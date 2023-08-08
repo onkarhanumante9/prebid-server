@@ -89,11 +89,7 @@ jobs:
 
       - name: Checkout master branch
         if: ${{ steps.get_directories.outputs.result }} != ""
-        run: |
-          # print current branch
-          git branch
-          git checkout test
-          git branch
+        run: git checkout master
 
       - name: Add coverage summary to pull request
         if: ${{ steps.run_coverage.outputs.coverage_dir }} != "" && ${{ steps.commit_coverage.outputs.remote_coverage_preview_dir }} != ""

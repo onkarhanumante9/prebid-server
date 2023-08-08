@@ -361,9 +361,7 @@ class coverageHelper {
     this.github = input.github
     this.pullRequestNumber = input.context.payload.pull_request.number
     this.headSha = input.headSha
-    this.previewBaseURL =
-      "https://htmlpreview.github.io/?https://github.com/onkarvhanumante/prebid-server/coverage-preview/" +
-      input.remoteCoverageDir
+    this.previewBaseURL = `https://htmlpreview.github.io/?https://github.com/${this.owner}/${this.repo}/coverage-preview/${input.remoteCoverageDir}`
     this.tmpCoverDir = input.tmpCoverageDir
   }
 
