@@ -360,64 +360,48 @@ class coverageHelper {
     this.repo = input.context.repo.repo
     this.github = input.github
     this.pullRequestNumber = input.context.payload.pull_request.number
+    this.headSha = input.headSha
+    this.previewBaseURL =
+      "https://htmlpreview.github.io/?https://github.com/onkarvhanumante/prebid-server/coverage-preview/" +
+      input.remoteCoverageDir
+    this.tmpCoverDir = input.tmpCoverageDir
   }
 
   /*
-    Add a coverage summary comment to a GitHub pull request
-    @param {string} filepath - path to the file containing the coverage summary data
-  */
-  async AddCoverageSummary(filepath) {
-    const fs = require("fs")
-    fs.readFile(filepath, "utf8", async (err, data) => {
-      if (err) {
-        console.error(err)
-        return
-      } else {
-        await this.github.rest.issues.createComment({
-          owner: this.owner,
-          repo: this.repo,
-          issue_number: this.pullRequestNumber,
-          body: data,
-        })
-      }
-    })
-  }
-
-  async addCoveragePreviewFile(filepath, actionRunId) {
+    Adds a code coverage summary along with heatmap links and coverage data on pull request as comment
+    @param {Array} directories - directory for which coverage summary will be added
+   */
+  async AddCoverageSummary(directories = []) {
     const fs = require("fs")
     const path = require("path")
+    const { promisify } = require("util")
+    const readFileAsync = promisify(fs.readFile)
 
-    // read file with *.html extension from filepath
-    const files = await fs.promises.readdir(filepath)
+    let body = "## Code coverage summary\n"
+    for (const directory of directories) {
+      let url = `${this.previewBaseURL}/${directory}.html`
+      body += `Refer [here](${url}) to view the heatmap coverage for ${directory}. Note this coverage is up to ${this.headSha} commit. \n`
 
-    // iterate on files check if file is html. also maintain file name
-    const htmlFiles = files.filter((file) => path.extname(file) === ".html")
-    for (const file of htmlFiles) {
-      const fileContent = await fs.promises.readFile(path.join(filepath, file), "utf-8")
-      const committer = {
-        name: "github-actions[bot]",
-        email: "github-actions[bot]@users.noreply.github.com",
+      try {
+        const textFilePath = path.join(this.tmpCoverDir, `${directory}.txt`)
+        const data = await readFileAsync(textFilePath, "utf8")
+        body += "```\n"
+        body += data
+        body += "```\n"
+      } catch (err) {
+        console.error(err)
       }
-      const author = {
-        name: "github-actions[bot]",
-        email: "github-actions[bot]@users.noreply.github.com",
-      }
-      var owner = this.owner
-      var repo = this.repo
-      var filePath = actionRunId + "_" + file
-      await this.github.rest.repos.createOrUpdateFileContents({
-        owner,
-        repo,
-        filePath,
-        branch: "coverage-preview",
-        message: `Add coverage preview file ${file}`,
-        content: Buffer.from(fileContent).toString("base64"),
-        committer,
-        author,
-      })
     }
+
+    await this.github.rest.issues.createComment({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: this.pullRequestNumber,
+      body: body,
+    })
   }
 }
+
 module.exports = {
   diffHelper: (input) => new diffHelper(input),
   semgrepHelper: (input) => new semgrepHelper(input),
