@@ -75,30 +75,37 @@ jobs:
 
       - name: Commit coverage files to coverage-preview branch
         if: ${{ steps.run_coverage.outputs.coverage_dir }} != ""
+        id: commit_coverage
         run: |
-            # append timestamp
-            directory=.github/preview/${{ github.run_id }}_$(date +%s)
-            mkdir -p $directory
-            cp -r ${{ steps.run_coverage.outputs.coverage_dir }}/*.html ./$directory
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git add $directory/*
-            git commit -m 'Add coverage files for commit ${directory}'
-            git push origin coverage-preview
+          directory=.github/preview/${{ github.run_id }}_$(date +%s)
+          mkdir -p $directory
+          cp -r ${{ steps.run_coverage.outputs.coverage_dir }}/*.html ./$directory
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add $directory/*
+          git commit -m 'Add coverage files'
+          git push origin coverage-preview
+          echo "remote_coverage_preview_dir=${directory}" >> $GITHUB_OUTPUT
+
+      - name: Checkout master branch
+        if: ${{ steps.get_directories.outputs.result }} != ""
+        run: |
+          # print current branch
+          git branch
+          git checkout test
+          git branch
 
       - name: Add coverage summary to pull request
-        if: ${{ steps.run_coverage.outputs.coverage_dir }} != ""
+        if: ${{ steps.run_coverage.outputs.coverage_dir }} != "" && ${{ steps.commit_coverage.outputs.remote_coverage_preview_dir }} != ""
         uses: actions/github-script@v6
         with:
           script: |
             const utils = require('./.github/workflows/helpers/pull-request-utils.js')
-            console.log("p1")
-            const helper = utils.coverageHelper({github, context})
-            console.log("p2")
-            const coverageDir = '${{ steps.run_coverage.outputs.coverage_dir }}'
-            console.log("p3")
+            const helper = utils.coverageHelper({
+              github, context,
+              headSha: '${{ github.event.pull_request.head.sha }}', 
+              tmpCoverageDir: '${{ steps.run_coverage.outputs.coverage_dir }}', 
+              remoteCoverageDir: '${{ steps.commit_coverage.outputs.remote_coverage_preview_dir }}'
+            })
             const adapterDirectories = JSON.parse('${{ steps.get_directories.outputs.result }}')
-            console.log("p4")
-            const actionRunId = '${{ github.run_id }}'
-            console.log("p5")
-            await helper.AddCoverageSummary(coverageDir, adapterDirectories, actionRunId)
+            await helper.AddCoverageSummary(adapterDirectories)
